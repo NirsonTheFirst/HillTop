@@ -1,201 +1,139 @@
 ﻿#include "game.h"
 
-#include <fstream>
+#include <algorithm>
 #include <iostream>
-#include <sstream>
 
 Game::Game() { is_running = false; }
 
-void Game::loadTexts(const std::string& path) {
-  std::ifstream file(path);
-  std::stringstream buf;
-  buf << file.rdbuf();
-  std::string text = buf.str();
-
-  std::string keys[] = {"welcome",     "help",      "help_look", "help_go",
-                        "help_help",   "help_quit", "exits",     "cant_go",
-                        "no_location", "unknown",   "goodbye",   "game_over",
-                        "cmd_help",    "cmd_look",  "cmd_quit",  "cmd_go"};
-  for (auto& key : keys) {
-    size_t p = text.find("\"" + key + "\"");
-    if (p == std::string::npos) continue;
-    size_t c = text.find(':', p);
-    size_t q1 = text.find('"', c + 1);
-    size_t q2 = text.find('"', q1 + 1);
-    texts[key] = text.substr(q1 + 1, q2 - q1 - 1);
-  }
-}
-
-std::string Game::t(const std::string& key) {
-  return texts.count(key) ? texts[key] : key;
-}
-
-bool Game::isCmd(const std::string& in, const std::string& key) {
-  return texts.count(key) && in == texts[key];
-}
-
-std::string Game::arg(const std::string& in, const std::string& key) {
-  if (!texts.count(key)) return "";
-  std::string cmd = texts[key];
-  return (in.find(cmd) == 0) ? in.substr(cmd.size()) : "";
-}
-
-void Game::loadLocations(const std::string& path) {
-  std::ifstream file(path);
-  std::stringstream buf;
-  buf << file.rdbuf();
-  std::string text = buf.str();
-
-  int depth = 0;
-  std::string id, obj;
-
-  for (size_t i = 0; i < text.size(); i++) {
-    char c = text[i];
-
-    if (c == '{') {
-      if (depth == 1 && !id.empty() && obj.empty()) obj = "{";
-      depth++;
-      if (!id.empty() && !obj.empty()) obj += c;
-    } else if (c == '}') {
-      depth--;
-      if (!id.empty() && !obj.empty()) obj += c;
-      if (depth == 1 && !id.empty() && !obj.empty()) {
-        Location loc;
-        loc.id = id;
-        loc.name = getVal(obj, "name");
-        loc.description = getVal(obj, "description");
-        loc.exits = getArr(obj, "exits");
-        loc.aliases = getArr(obj, "aliases");
-        locations[id] = loc;
-        id = "";
-        obj = "";
-      }
-    } else if (depth == 1 && c == '"' && id.empty()) {
-      size_t q2 = text.find('"', i + 1);
-      id = text.substr(i + 1, q2 - i - 1);
-      i = q2;
-    } else if (!id.empty() && !obj.empty()) {
-      obj += c;
-    }
-  }
-}
-
-std::string Game::getVal(const std::string& obj, const std::string& key) {
-  size_t p = obj.find("\"" + key + "\"");
-  if (p == std::string::npos) return "";
-  size_t c = obj.find(':', p);
-  size_t q1 = obj.find('"', c + 1);
-  size_t q2 = obj.find('"', q1 + 1);
-  return obj.substr(q1 + 1, q2 - q1 - 1);
-}
-
-std::vector<std::string> Game::getArr(const std::string& obj,
-                                      const std::string& key) {
-  std::vector<std::string> res;
-  size_t p = obj.find("\"" + key + "\"");
-  if (p == std::string::npos) return res;
-  size_t b = obj.find('[', p);
-  size_t e = obj.find(']', b);
-  std::string s = obj.substr(b + 1, e - b - 1);
-  size_t q = 0;
-  while (true) {
-    size_t q1 = s.find('"', q);
-    if (q1 == std::string::npos) break;
-    size_t q2 = s.find('"', q1 + 1);
-    res.push_back(s.substr(q1 + 1, q2 - q1 - 1));
-    q = q2 + 1;
-  }
-  return res;
-}
-
 void Game::init() {
-  loadTexts("data/text.json");
-  loadLocations("data/locations.json");
+  cmd.load("data/text.json");
+  world.load("data/locations.json");
+  items = Loader::loadItems("data/items.json");
 
   std::cout << "=== HILLTOP ===" << std::endl;
-  std::cout << t("welcome") << std::endl << std::endl;
-
-  current_location_id = "bank";
-  player.name = "Clerk";
+  std::cout << cmd.t("welcome") << std::endl << std::endl;
   is_running = true;
   showLocation();
 }
 
 void Game::showLocation() {
-  Location& loc = locations[current_location_id];
+  Location& loc = world.here();
   std::cout << "--- " << loc.name << " ---" << std::endl;
   std::cout << loc.description << std::endl;
-  std::cout << t("exits") << " ";
 
+  if (!loc.items.empty()) {
+    std::cout << cmd.t("items_here") << " ";
+    for (size_t i = 0; i < loc.items.size(); i++) {
+      std::string name = loc.items[i];
+      if (items.count(name)) name = items[name].name;
+      std::cout << name;
+      if (i < loc.items.size() - 1) std::cout << ", ";
+    }
+    std::cout << std::endl;
+  }
+
+  std::cout << cmd.t("exits") << " ";
   for (size_t i = 0; i < loc.exits.size(); i++) {
     std::string name = loc.exits[i];
-    if (locations.count(name)) name = locations[name].name;
+    if (world.all().count(name)) name = world.all().at(name).name;
     std::cout << name;
     if (i < loc.exits.size() - 1) std::cout << ", ";
   }
   std::cout << std::endl << std::endl;
 }
 
-void Game::moveTo(const std::string& input) {
-  std::string target = input;
-
-  for (auto& pair : locations) {
-    if (pair.second.name == input) {
-      target = pair.first;
-      break;
-    }
-    for (auto& alias : pair.second.aliases) {
-      if (alias == input) {
-        target = pair.first;
-        break;
-      }
-    }
+std::string Game::resolve(const std::string& input) {
+  if (world.all().count(input)) return input;
+  for (auto& pair : world.all()) {
+    if (pair.second.name == input) return pair.first;
+    for (auto& alias : pair.second.aliases)
+      if (alias == input) return pair.first;
   }
+  return input;
+}
 
-  Location& cur = locations[current_location_id];
-  bool ok = false;
-  for (auto& exit : cur.exits) {
-    if (exit == target) {
-      ok = true;
-      break;
-    }
-  }
-
-  if (!ok) {
-    std::cout << t("cant_go") << std::endl;
+void Game::moveTo(const std::string& target) {
+  std::string id = resolve(target);
+  if (!world.canGo(id)) {
+    std::cout << cmd.t("cant_go") << std::endl;
     return;
   }
-
-  current_location_id = target;
+  world.goTo(id);
   showLocation();
 }
 
-void Game::processCommand(const std::string& input) {
-  if (isCmd(input, "cmd_help")) {
-    std::cout << t("help") << std::endl;
-    std::cout << t("help_look") << std::endl;
-    std::cout << t("help_go") << std::endl;
-    std::cout << t("help_help") << std::endl;
-    std::cout << t("help_quit") << std::endl;
-    return;
+Item* Game::findItem(const std::string& name) {
+  for (auto& pair : items) {
+    if (pair.second.name == name) return &pair.second;
+    for (auto& alias : pair.second.aliases)
+      if (alias == name) return &pair.second;
   }
-  if (isCmd(input, "cmd_look")) {
-    showLocation();
-    return;
-  }
-  if (isCmd(input, "cmd_quit")) {
-    is_running = false;
-    std::cout << t("goodbye") << std::endl;
-    return;
-  }
+  return nullptr;
+}
 
-  std::string a = arg(input, "cmd_go");
-  if (!a.empty()) {
-    moveTo(a);
+void Game::takeItem(const std::string& name) {
+  Location& loc = world.here();
+  for (size_t i = 0; i < loc.items.size(); i++) {
+    std::string id = loc.items[i];
+    if (!items.count(id)) continue;
+    Item& item = items[id];
+    if (item.name == name || std::find(item.aliases.begin(), item.aliases.end(),
+                                       name) != item.aliases.end()) {
+      player.inventory.push_back(item);
+      std::cout << cmd.t("taken") << item.name << std::endl;
+      loc.items.erase(loc.items.begin() + i);
+      return;
+    }
+  }
+  std::cout << cmd.t("not_found") << std::endl;
+}
+
+void Game::showInventory() {
+  if (player.inventory.empty()) {
+    std::cout << cmd.t("inventory_empty") << std::endl;
     return;
   }
+  std::cout << cmd.t("inventory") << std::endl;
+  for (size_t i = 0; i < player.inventory.size(); i++)
+    std::cout << "  " << (i + 1) << ". " << player.inventory[i].name << " ("
+              << player.inventory[i].description << ")" << std::endl;
+}
 
-  std::cout << t("unknown") << std::endl;
+void Game::useItem(const std::string& name) {
+  for (size_t i = 0; i < player.inventory.size(); i++) {
+    Item& item = player.inventory[i];
+    if (item.name == name || std::find(item.aliases.begin(), item.aliases.end(),
+                                       name) != item.aliases.end()) {
+      std::cout << cmd.t("used") << item.name << std::endl;
+      if (item.type == "consumable") {
+        std::cout << "  +" << item.value << " HP" << std::endl;
+        player.inventory.erase(player.inventory.begin() + i);
+        return;
+      }
+      if (item.type == "story") {
+        flags[item.flag] = true;
+        std::cout << "  " << item.description << std::endl;
+        return;
+      }
+      if (item.type == "weapon") {
+        std::cout << "  Damage: " << item.damage << ", Ammo: " << item.ammo
+                  << std::endl;
+        return;
+      }
+    }
+  }
+  std::cout << cmd.t("cant_use") << std::endl;
+}
+
+void Game::showHelp() {
+  std::cout << cmd.t("help") << std::endl;
+  std::cout << cmd.t("help_look") << std::endl;
+  std::cout << cmd.t("help_go") << std::endl;
+  std::cout << cmd.t("help_take") << std::endl;
+  std::cout << cmd.t("help_inv") << std::endl;
+  std::cout << cmd.t("help_use") << std::endl;
+  std::cout << cmd.t("help_help") << std::endl;
+  std::cout << cmd.t("help_quit") << std::endl;
 }
 
 void Game::run() {
@@ -203,10 +141,44 @@ void Game::run() {
   while (is_running) {
     std::cout << "> ";
     std::getline(std::cin, input);
-    if (!input.empty()) processCommand(input);
+    if (input.empty()) continue;
+
+    if (cmd.is(input, "cmd_help")) {
+      showHelp();
+      continue;
+    }
+    if (cmd.is(input, "cmd_look")) {
+      showLocation();
+      continue;
+    }
+    if (cmd.is(input, "cmd_quit")) {
+      is_running = false;
+      std::cout << cmd.t("goodbye") << std::endl;
+      continue;
+    }
+    if (cmd.is(input, "cmd_inv")) {
+      showInventory();
+      continue;
+    }
+
+    std::string a = cmd.arg(input, "cmd_go");
+    if (!a.empty()) {
+      moveTo(a);
+      continue;
+    }
+    a = cmd.arg(input, "cmd_take");
+    if (!a.empty()) {
+      takeItem(a);
+      continue;
+    }
+    a = cmd.arg(input, "cmd_use");
+    if (!a.empty()) {
+      useItem(a);
+      continue;
+    }
+
+    std::cout << cmd.t("unknown") << std::endl;
   }
 }
 
-void Game::shutdown() { std::cout << t("game_over") << std::endl; }
-
-bool Game::isRunning() const { return is_running; }
+void Game::shutdown() { std::cout << cmd.t("game_over") << std::endl; }

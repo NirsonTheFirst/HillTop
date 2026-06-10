@@ -3,16 +3,10 @@
 
 #include <map>
 #include <string>
-#include <vector>
 
-struct Location {
-  std::string id, name, description;
-  std::vector<std::string> exits, aliases;
-};
-
-struct Player {
-  std::string name;
-};
+#include "commands.h"
+#include "player.h"
+#include "world.h"
 
 class Game {
  public:
@@ -20,26 +14,24 @@ class Game {
   void init();
   void run();
   void shutdown();
-  bool isRunning() const;
 
  private:
   bool is_running;
   Player player;
-  std::map<std::string, Location> locations;
-  std::string current_location_id;
-  std::map<std::string, std::string> texts;
+  World world;
+  Commands cmd;
+  std::map<std::string, Item> items;
+  std::map<std::string, bool> flags;
 
-  void loadTexts(const std::string& path);
-  void loadLocations(const std::string& path);
-  void processCommand(const std::string& input);
   void showLocation();
   void moveTo(const std::string& target);
-  std::string t(const std::string& key);
-  bool isCmd(const std::string& in, const std::string& key);
-  std::string arg(const std::string& in, const std::string& key);
-  std::string getVal(const std::string& obj, const std::string& key);
-  std::vector<std::string> getArr(const std::string& obj,
-                                  const std::string& key);
+  void takeItem(const std::string& name);
+  void showInventory();
+  void useItem(const std::string& name);
+  void showHelp();
+
+  Item* findItem(const std::string& name);
+  std::string resolve(const std::string& input);
 };
 
 #endif

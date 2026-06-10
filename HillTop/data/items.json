@@ -1,0 +1,32 @@
+﻿{
+  "revolver": {
+    "name": "Кольт Миротворец",
+    "description": "Шестизарядный револьвер. Тяжёлый и надёжный.",
+    "type": "weapon",
+    "damage": 35,
+    "ammo": 6,
+    "aliases": [ "кольт", "револьвер", "пистолет" ]
+  },
+  "whiskey": {
+    "name": "Бутылка виски",
+    "description": "Дешёвое пойло. Согревает и придаёт смелости.",
+    "type": "consumable",
+    "effect": "heal",
+    "value": 10,
+    "aliases": [ "виски", "бутылка" ]
+  },
+  "vault_key": {
+    "name": "Ключ от сейфа",
+    "description": "Тяжёлый железный ключ с гравировкой.",
+    "type": "story",
+    "flag": "has_key",
+    "aliases": [ "ключ" ]
+  },
+  "badge": {
+    "name": "Значок шерифа",
+    "description": "Блестящая золотая звезда.",
+    "type": "story",
+    "flag": "has_badge",
+    "aliases": [ "значок", "звезда" ]
+  }
+}
