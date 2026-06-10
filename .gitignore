@@ -1,0 +1,42 @@
+# Compiled executable
+*.exe
+*.out
+*.app
+
+# Compiled object files
+*.o
+*.obj
+
+# Compiled libraries
+*.lib
+*.dll
+*.so
+*.dylib
+
+# Debug and release build directories
+build/
+Debug/
+Release/
+x64/
+x86/
+bin/
+obj/
+
+# IDE and editor directories
+.idea/
+.vscode/
+.vs/
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+
+# IDE project files
+*.sln
+*.vcxproj
+*.vcxproj.filters
+*.vcxproj.user
+*.cbp
+*.depend
+*.layout
