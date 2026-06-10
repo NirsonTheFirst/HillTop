@@ -1,0 +1,26 @@
+{
+  "bank": {
+    "name": "Банк HillTop",
+    "description": "Небольшое кирпичное здание. За стойкой сидит клерк.",
+    "exits": [ "saloon", "street" ],
+    "aliases": [ "банк" ]
+  },
+  "saloon": {
+    "name": "Салон 'Золотая подкова'",
+    "description": "Шумное место с барной стойкой и пианино в углу.",
+    "exits": [ "bank", "street" ],
+    "aliases": [ "салун", "салон" ]
+  },
+  "street": {
+    "name": "Главная улица",
+    "description": "Пыльная дорога между зданиями.",
+    "exits": [ "bank", "saloon", "sheriff" ],
+    "aliases": [ "улица" ]
+  },
+  "sheriff": {
+    "name": "Офис шерифа",
+    "description": "Кабинет с решётками. На стене висит карта.",
+    "exits": [ "street" ],
+    "aliases": [ "шериф", "офис" ]
+  }
+}
