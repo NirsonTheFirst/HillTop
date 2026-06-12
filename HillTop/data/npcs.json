@@ -1,0 +1,32 @@
+﻿{
+  "bank_clerk": {
+    "name": "Клерк Джонсон",
+    "description": "Усталый мужчина в очках.",
+    "dialogue_id": "clerk_start",
+    "aliases": [ "клерк", "джонсон" ]
+  },
+  "bartender": {
+    "name": "Бармен Джо",
+    "description": "Крупный мужчина с усами.",
+    "dialogue_id": "bartender_start",
+    "aliases": [ "бармен", "джо" ]
+  },
+  "sheriff": {
+    "name": "Шериф Купер",
+    "description": "Высокий мужчина со звездой на груди.",
+    "dialogue_id": "sheriff_start",
+    "aliases": [ "шериф", "купер" ]
+  },
+  "drunken_cowboy": {
+    "name": "Пьяный ковбой",
+    "description": "Шатается у стойки.",
+    "dialogue_id": "cowboy_start",
+    "aliases": [ "ковбой", "пьяный" ]
+  },
+  "outlaw_leader": {
+    "name": "Главарь банды",
+    "description": "Опасный человек с револьвером.",
+    "dialogue_id": "",
+    "aliases": [ "главарь", "бандит" ]
+  }
+}
