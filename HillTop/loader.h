@@ -19,12 +19,6 @@ class Loader {
   static std::map<std::string, Item> loadItems(const std::string& path);
   static std::map<std::string, NPC> loadNPCs(const std::string& path);
   static std::map<std::string, Dialogue> loadDialogues(const std::string& path);
-
- private:
-  static std::string getVal(const std::string& obj, const std::string& key);
-  static std::vector<std::string> getArr(const std::string& obj,
-                                         const std::string& key);
-  static int getInt(const std::string& obj, const std::string& key);
   static Player loadPlayer(const std::string& path);
 };
 

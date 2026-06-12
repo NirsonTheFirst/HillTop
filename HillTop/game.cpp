@@ -5,7 +5,7 @@
 #include <iostream>
 #include <thread>
 
-Game::Game() { is_running = false; }
+Game::Game() : is_running(false) {}
 
 void Game::init() {
   cmd.load("data/text.json");
@@ -13,6 +13,7 @@ void Game::init() {
   items = Loader::loadItems("data/items.json");
   npcs = Loader::loadNPCs("data/npcs.json");
   dialogues = Loader::loadDialogues("data/dialogues.json");
+  player = Loader::loadPlayer("data/player.json");
 
   std::cout << "=== HILLTOP ===" << std::endl;
   std::cout << cmd.t("welcome") << std::endl << std::endl;
@@ -59,10 +60,11 @@ void Game::showLocation() {
 
 std::string Game::resolve(const std::string& input) {
   if (world.all().count(input)) return input;
-  for (auto& pair : world.all()) {
-    if (pair.second.name == input) return pair.first;
-    for (auto& alias : pair.second.aliases)
-      if (alias == input) return pair.first;
+  for (std::map<std::string, Location>::const_iterator it = world.all().begin();
+       it != world.all().end(); ++it) {
+    if (it->second.name == input) return it->first;
+    for (size_t i = 0; i < it->second.aliases.size(); i++)
+      if (it->second.aliases[i] == input) return it->first;
   }
   return input;
 }
@@ -78,12 +80,13 @@ void Game::moveTo(const std::string& target) {
 }
 
 Item* Game::findItem(const std::string& name) {
-  for (auto& pair : items) {
-    if (pair.second.name == name) return &pair.second;
-    for (auto& alias : pair.second.aliases)
-      if (alias == name) return &pair.second;
+  for (std::map<std::string, Item>::iterator it = items.begin();
+       it != items.end(); ++it) {
+    if (it->second.name == name) return &it->second;
+    for (size_t i = 0; i < it->second.aliases.size(); i++)
+      if (it->second.aliases[i] == name) return &it->second;
   }
-  return nullptr;
+  return NULL;
 }
 
 void Game::takeItem(const std::string& name) {
@@ -121,7 +124,10 @@ void Game::useItem(const std::string& name) {
                                        name) != item.aliases.end()) {
       std::cout << cmd.t("used") << item.name << std::endl;
       if (item.type == "consumable") {
-        std::cout << "  +" << item.value << " HP" << std::endl;
+        player.hp += item.value;
+        if (player.hp > 100) player.hp = 100;
+        std::cout << "  +" << item.value << " HP (" << player.hp << "/100)"
+                  << std::endl;
         player.inventory.erase(player.inventory.begin() + i);
         return;
       }
@@ -141,17 +147,19 @@ void Game::useItem(const std::string& name) {
 }
 
 NPC* Game::findNPC(const std::string& name) {
-  for (auto& pair : npcs) {
-    if (pair.second.name == name) return &pair.second;
-    for (auto& alias : pair.second.aliases)
-      if (alias == name) return &pair.second;
+  for (std::map<std::string, NPC>::iterator it = npcs.begin(); it != npcs.end();
+       ++it) {
+    if (it->second.name == name) return &it->second;
+    for (size_t i = 0; i < it->second.aliases.size(); i++)
+      if (it->second.aliases[i] == name) return &it->second;
   }
-  return nullptr;
+  return NULL;
 }
 
 void Game::talkTo(const std::string& name) {
   Location& loc = world.here();
-  for (auto& npcId : loc.npcs) {
+  for (size_t i = 0; i < loc.npcs.size(); i++) {
+    std::string npcId = loc.npcs[i];
     if (!npcs.count(npcId)) continue;
     NPC& npc = npcs[npcId];
     if (npc.name == name || std::find(npc.aliases.begin(), npc.aliases.end(),
@@ -204,7 +212,8 @@ void Game::duel() {
   Location& loc = world.here();
 
   bool hasEnemy = false;
-  for (auto& npcId : loc.npcs) {
+  for (size_t i = 0; i < loc.npcs.size(); i++) {
+    std::string npcId = loc.npcs[i];
     if (npcs.count(npcId) && npcs[npcId].dialogue.empty()) {
       hasEnemy = true;
       break;
@@ -217,8 +226,8 @@ void Game::duel() {
   }
 
   bool hasWeapon = false;
-  for (auto& item : player.inventory) {
-    if (item.type == "weapon") {
+  for (size_t i = 0; i < player.inventory.size(); i++) {
+    if (player.inventory[i].type == "weapon") {
       hasWeapon = true;
       break;
     }
@@ -266,35 +275,22 @@ void Game::duel() {
   }
 }
 
-void Game::killPlayer()
-{
-    player.hp = 0;
-
-    std::cout << Text::get("ending_dead")
-        << std::endl;
-
-    is_running = false;
+void Game::killPlayer() {
+  player.hp = 0;
+  std::cout << cmd.t("ending_dead") << std::endl;
+  is_running = false;
 }
 
-void Game::showEnding()
-{
-    if (player.hp <= 0)
-    {
-        std::cout << Text::get("ending_dead")
-            << std::endl;
-        return;
-    }
+void Game::checkEndings() {
+  if (flags["won_duel"] || flags["outlaw_defeated"]) {
+    std::cout << cmd.t("ending_win") << std::endl;
+    is_running = false;
+  }
 
-    if (player.karma > 0)
-    {
-        std::cout << Text::get("ending_good")
-            << std::endl;
-    }
-    else
-    {
-        std::cout << Text::get("ending_bad")
-            << std::endl;
-    }
+  if (player.hp <= 0) {
+    std::cout << cmd.t("ending_lose") << std::endl;
+    is_running = false;
+  }
 }
 
 void Game::showHelp() {

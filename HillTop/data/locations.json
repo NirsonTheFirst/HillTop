@@ -29,14 +29,14 @@
   },
 
   "streetup": {
-    "name": "Главная улица",
+    "name": "Верхняя улица",
     "description": "Пыльная дорога между зданиями.",
     "exits": [ "streetdown", "bank", "stable", "caves" ],
     "aliases": [ "верхняя улица" ],
     "items": []
   },
   "streetdown": {
-    "name": "Главная улица",
+    "name": "Нижняя улица",
     "description": "Пыльная дорога между зданиями.",
     "exits": [ "streetup", "saloon", "sheriff", "prairie" ],
     "aliases": [ "нижняя улица" ],
