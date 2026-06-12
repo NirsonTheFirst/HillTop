@@ -51,13 +51,14 @@ std::map<std::string, std::string> Loader::loadTexts(const std::string& path) {
   std::string text = buf.str();
 
   std::string keys[] = {
-      "welcome",     "help",      "help_look",       "help_go",
-      "help_take",   "help_inv",  "help_use",        "help_help",
-      "help_quit",   "exits",     "items_here",      "cant_go",
-      "no_location", "unknown",   "goodbye",         "game_over",
-      "cmd_help",    "cmd_look",  "cmd_quit",        "cmd_go",
-      "cmd_take",    "cmd_inv",   "cmd_use",         "taken",
-      "not_found",   "inventory", "inventory_empty", "used",
+      "welcome",       "help",      "help_look",       "help_go",
+      "help_take",     "help_inv",  "help_use",        "help_help",
+      "help_quit",     "help_talk", "exits",           "items_here",
+      "npcs_here",     "cant_go",   "no_location",     "unknown",
+      "goodbye",       "game_over", "cmd_help",        "cmd_look",
+      "cmd_quit",      "cmd_go",    "cmd_take",        "cmd_inv",
+      "cmd_use",       "cmd_talk",  "taken",           "not_found",
+      "npc_not_found", "inventory", "inventory_empty", "used",
       "cant_use"};
   for (auto& key : keys) {
     size_t p = text.find("\"" + key + "\"");
@@ -97,6 +98,7 @@ std::map<std::string, Location> Loader::loadLocations(const std::string& path) {
         loc.exits = getArr(obj, "exits");
         loc.aliases = getArr(obj, "aliases");
         loc.items = getArr(obj, "items");
+        loc.npcs = getArr(obj, "npcs");
         locations[id] = loc;
         id = "";
         obj = "";
@@ -110,6 +112,47 @@ std::map<std::string, Location> Loader::loadLocations(const std::string& path) {
     }
   }
   return locations;
+}
+
+std::map<std::string, NPC> Loader::loadNPCs(const std::string& path) {
+  std::map<std::string, NPC> npcs;
+  std::ifstream file(path);
+  std::stringstream buf;
+  buf << file.rdbuf();
+  std::string text = buf.str();
+
+  int depth = 0;
+  std::string id, obj;
+
+  for (size_t i = 0; i < text.size(); i++) {
+    char c = text[i];
+    if (c == '{') {
+      if (depth == 1 && !id.empty() && obj.empty()) obj = "{";
+      depth++;
+      if (!id.empty() && !obj.empty()) obj += c;
+    } else if (c == '}') {
+      depth--;
+      if (!id.empty() && !obj.empty()) obj += c;
+      if (depth == 1 && !id.empty() && !obj.empty()) {
+        NPC npc;
+        npc.id = id;
+        npc.name = getVal(obj, "name");
+        npc.description = getVal(obj, "description");
+        npc.dialogue = getVal(obj, "dialogue_id");
+        npc.aliases = getArr(obj, "aliases");
+        npcs[id] = npc;
+        id = "";
+        obj = "";
+      }
+    } else if (depth == 1 && c == '"' && id.empty()) {
+      size_t q2 = text.find('"', i + 1);
+      id = text.substr(i + 1, q2 - i - 1);
+      i = q2;
+    } else if (!id.empty() && !obj.empty()) {
+      obj += c;
+    }
+  }
+  return npcs;
 }
 
 std::map<std::string, Item> Loader::loadItems(const std::string& path) {
@@ -155,4 +198,91 @@ std::map<std::string, Item> Loader::loadItems(const std::string& path) {
     }
   }
   return items;
+}
+
+std::map<std::string, Dialogue> Loader::loadDialogues(const std::string& path) {
+  std::map<std::string, Dialogue> dialogues;
+  std::ifstream file(path);
+  std::stringstream buf;
+  buf << file.rdbuf();
+  std::string text = buf.str();
+
+  int depth = 0;
+  std::string id, obj;
+
+  for (size_t i = 0; i < text.size(); i++) {
+    char c = text[i];
+    if (c == '{') {
+      if (depth == 1 && !id.empty() && obj.empty()) obj = "{";
+      depth++;
+      if (!id.empty() && !obj.empty()) obj += c;
+    } else if (c == '}') {
+      depth--;
+      if (!id.empty() && !obj.empty()) obj += c;
+      if (depth == 1 && !id.empty() && !obj.empty()) {
+        Dialogue d;
+        d.text = getVal(obj, "text");
+
+        size_t opts = obj.find("\"options\"");
+        if (opts != std::string::npos) {
+          size_t arr = obj.find('[', opts);
+          int adepth = 0;
+          size_t arrEnd = arr;
+          for (size_t k = arr; k < obj.size(); k++) {
+            if (obj[k] == '[') adepth++;
+            if (obj[k] == ']') {
+              adepth--;
+              if (adepth == 0) {
+                arrEnd = k;
+                break;
+              }
+            }
+          }
+
+          std::string optStr = obj.substr(arr + 1, arrEnd - arr - 1);
+
+          size_t j = 0;
+          while (j < optStr.size()) {
+            size_t obrace = optStr.find('{', j);
+            if (obrace == std::string::npos) break;
+
+            int odepth = 0;
+            size_t oend = obrace;
+            for (size_t k = obrace; k < optStr.size(); k++) {
+              if (optStr[k] == '{') odepth++;
+              if (optStr[k] == '}') {
+                odepth--;
+                if (odepth == 0) {
+                  oend = k;
+                  break;
+                }
+              }
+            }
+
+            std::string oobj = optStr.substr(obrace, oend - obrace + 1);
+
+            DialogueOption opt;
+            opt.text = getVal(oobj, "text");
+            opt.flag = getVal(oobj, "flag");
+            opt.next = getVal(oobj, "next");
+            if (opt.flag == "null") opt.flag = "";
+            if (opt.next == "null") opt.next = "";
+            d.options.push_back(opt);
+
+            j = oend + 1;
+          }
+        }
+        dialogues[id] = d;
+        id = "";
+        obj = "";
+      }
+    } else if (depth == 1 && c == '"' && id.empty()) {
+      size_t q2 = text.find('"', i + 1);
+      id = text.substr(i + 1, q2 - i - 1);
+      i = q2;
+    } else if (!id.empty() && !obj.empty()) {
+      obj += c;
+    }
+  }
+  return dialogues;
 }

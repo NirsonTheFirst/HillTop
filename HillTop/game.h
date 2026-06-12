@@ -21,6 +21,8 @@ class Game {
   World world;
   Commands cmd;
   std::map<std::string, Item> items;
+  std::map<std::string, NPC> npcs;
+  std::map<std::string, Dialogue> dialogues;
   std::map<std::string, bool> flags;
 
   void showLocation();
@@ -28,9 +30,14 @@ class Game {
   void takeItem(const std::string& name);
   void showInventory();
   void useItem(const std::string& name);
+  void talkTo(const std::string& name);
+  void runDialogue(const std::string& dialogueId);
+  void duel();
   void showHelp();
+  void checkEndings();
 
   Item* findItem(const std::string& name);
+  NPC* findNPC(const std::string& name);
   std::string resolve(const std::string& input);
 };
 
