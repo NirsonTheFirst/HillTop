@@ -35,6 +35,7 @@ class Game {
   void duel();
   void showHelp();
   void checkEndings();
+  void killPlayer();
 
   Item* findItem(const std::string& name);
   NPC* findNPC(const std::string& name);

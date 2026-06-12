@@ -266,12 +266,35 @@ void Game::duel() {
   }
 }
 
-void Game::checkEndings() {
-  if (flags["outlaw_defeated"]) {
-    std::cout << std::endl;
-    std::cout << cmd.t("ending_win") << std::endl;
+void Game::killPlayer()
+{
+    player.hp = 0;
+
+    std::cout << Text::get("ending_dead")
+        << std::endl;
+
     is_running = false;
-  }
+}
+
+void Game::showEnding()
+{
+    if (player.hp <= 0)
+    {
+        std::cout << Text::get("ending_dead")
+            << std::endl;
+        return;
+    }
+
+    if (player.karma > 0)
+    {
+        std::cout << Text::get("ending_good")
+            << std::endl;
+    }
+    else
+    {
+        std::cout << Text::get("ending_bad")
+            << std::endl;
+    }
 }
 
 void Game::showHelp() {

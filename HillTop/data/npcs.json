@@ -27,6 +27,18 @@
     "name": "Главарь банды",
     "description": "Опасный человек с револьвером.",
     "dialogue_id": "",
-    "aliases": [ "главарь", "бандит" ]
+    "aliases": [ "главарь" ]
+  },
+  "bandit": {
+    "name": "Бандит",
+    "description": "Опасный человек с револьвером.",
+    "dialogue_id": "",
+    "aliases": [ "бандит" ]
+  },
+  "cannibal": {
+    "name": "Каннибал",
+    "description": "Страшный каннибал",
+    "dialogue_id": "",
+    "aliases": [ "каннибал" ]
   }
 }

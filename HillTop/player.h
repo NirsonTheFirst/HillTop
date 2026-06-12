@@ -30,8 +30,12 @@ struct NPC {
 };
 
 struct Player {
-  std::string name;
-  std::vector<Item> inventory;
+	std::string name;
+
+	int hp = 100;
+	int karma = 0;
+
+	std::vector<Item> inventory;
 };
 
 #endif

@@ -12,7 +12,7 @@
     "description": "Дешёвое пойло. Согревает и придаёт смелости.",
     "type": "consumable",
     "effect": "heal",
-    "value": 10,
+    "value": 50,
     "aliases": [ "виски", "бутылка" ]
   },
   "vault_key": {
@@ -28,5 +28,37 @@
     "type": "story",
     "flag": "has_badge",
     "aliases": [ "значок", "звезда" ]
+  },
+  "horsehoe": {
+    "name": "Подкова банды",
+    "description": "Подкова, которая принадлежит банде Черные койты.",
+    "type": "story",
+    "flag": "has_horsehoe",
+    "aliases": [ "подкова" ]
+  },
+  "journal": {
+    "name": "Журнал операций банка",
+    "type": "story",
+    "flag": "has_journal",
+    "aliases": [ "журнал" ]
+  },
+  "gold": {
+    "name": "Золото банды",
+    "description": "Золото, которое принадлежит банде.",
+    "type": "story",
+    "flag": "has_horsehoe",
+    "aliases": [ "золото" ]
+  },
+  "letter": {
+    "name": "Письмо главаря банды",
+    "type": "story",
+    "flag": "has_letter",
+    "aliases": [ "письмо" ]
+  },
+  "whistle": {
+    "name": "Свисток каннибала",
+    "type": "story",
+    "flag": "has_whistle",
+    "aliases": [ "свисток" ]
   }
 }

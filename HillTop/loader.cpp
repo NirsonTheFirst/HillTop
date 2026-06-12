@@ -11,6 +11,23 @@ std::string Loader::getVal(const std::string& obj, const std::string& key) {
   size_t q2 = obj.find('"', q1 + 1);
   return obj.substr(q1 + 1, q2 - q1 - 1);
 }
+Player Loader::loadPlayer(const std::string& path)
+{
+    Player player;
+
+    std::ifstream file(path);
+    std::stringstream buffer;
+
+    buffer << file.rdbuf();
+
+    std::string text = buffer.str();
+
+    player.name = getVal(text, "name");
+    player.hp = getInt(text, "hp");
+    player.karma = getInt(text, "karma");
+
+    return player;
+}
 
 std::vector<std::string> Loader::getArr(const std::string& obj,
                                         const std::string& key) {

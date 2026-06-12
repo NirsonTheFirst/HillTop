@@ -2,33 +2,58 @@
   "bank": {
     "name": "Банк HillTop",
     "description": "Небольшое кирпичное здание. За стойкой сидит клерк.",
-    "exits": [ "saloon", "street" ],
+    "exits": [ "streetup" ],
     "aliases": [ "банк" ],
-    "items": [ "vault_key" ],
-    "npcs": [ "bank_clerk" ]
+    "items": [ "journal" ]
+  },
+  "stable": {
+    "name": "Конюшня",
+    "description": "Конюшня с лошадьми. Ничего необычного",
+    "exits": [ "streetup" ],
+    "aliases": [ "конюшня" ],
+    "items": [ "horseshoe" ]
   },
   "saloon": {
     "name": "Салон 'Золотая подкова'",
     "description": "Шумное место с барной стойкой и пианино в углу.",
-    "exits": [ "bank", "street" ],
+    "exits": [ "streetdown" ],
     "aliases": [ "салун", "салон" ],
-    "items": [ "whiskey" ],
-    "npcs": [ "bartender", "drunken_cowboy" ]
-  },
-  "street": {
-    "name": "Главная улица",
-    "description": "Пыльная дорога между зданиями.",
-    "exits": [ "bank", "saloon", "sheriff" ],
-    "aliases": [ "улица" ],
-    "items": [],
-    "npcs": [ "outlaw_leader" ]
+    "items": [ "whiskey" ]
   },
   "sheriff": {
     "name": "Офис шерифа",
     "description": "Кабинет с решётками. На стене висит карта.",
-    "exits": [ "street" ],
+    "exits": [ "streetdown" ],
     "aliases": [ "шериф", "офис" ],
-    "items": [ "revolver", "badge" ],
-    "npcs": [ "sheriff" ]
+    "items": [ "revolver", "badge" ]
+  },
+
+  "streetup": {
+    "name": "Главная улица",
+    "description": "Пыльная дорога между зданиями.",
+    "exits": [ "streetdown", "bank", "stable", "caves" ],
+    "aliases": [ "верхняя улица" ],
+    "items": []
+  },
+  "streetdown": {
+    "name": "Главная улица",
+    "description": "Пыльная дорога между зданиями.",
+    "exits": [ "streetup", "saloon", "sheriff", "prairie" ],
+    "aliases": [ "нижняя улица" ],
+    "items": []
+  },
+  "caves": {
+    "name": "Пещеры",
+    "description": "Жуткие пещеры из кторох доносятся страшные звуки.",
+    "exits": [ "streetup" ],
+    "aliases": [ "пещеры" ],
+    "items": [ "whistle" ]
+  },
+  "prairie": {
+    "name": "Прерии",
+    "description": "Живописные поля дикого запада.",
+    "exits": [ "streetdown" ],
+    "aliases": [ "прерия" ],
+    "items": [ "gold" ]
   }
 }

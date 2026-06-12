@@ -25,6 +25,7 @@ class Loader {
   static std::vector<std::string> getArr(const std::string& obj,
                                          const std::string& key);
   static int getInt(const std::string& obj, const std::string& key);
+  static Player loadPlayer(const std::string& path);
 };
 
 #endif
