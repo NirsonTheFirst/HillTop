@@ -28,6 +28,7 @@ struct NPC {
 struct Location {
   std::string id, name, description;
   std::vector<std::string> exits, aliases, items, npcs;
+  std::string music;
 };
 
 struct Player {

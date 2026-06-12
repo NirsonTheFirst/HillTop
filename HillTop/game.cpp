@@ -18,6 +18,7 @@ void Game::init() {
   std::cout << cmd.t("welcome") << std::endl << std::endl;
   is_running = true;
   showLocation();
+  playMusic();
 }
 
 void Game::showLocation() {
@@ -61,7 +62,17 @@ void Game::moveTo(const std::string& target) {
     return;
   }
   world.goTo(id);
+  playMusic();
   showLocation();
+  for (auto& npcId : world.here().npcs) {
+      auto it = npcs.find(npcId);
+      if (it != npcs.end() && it->second.dialogue.empty()) {
+          std::cout << it->second.name << cmd.t("enemy_attack") << std::endl;
+          duel.fight(world.here().npcs, flags, is_running);
+          checkEndings();
+          break;
+      }
+  }
 }
 
 void Game::checkEndings() {
@@ -92,8 +103,26 @@ void Game::showHelp() {
   std::cout << cmd.t("help_use") << std::endl;
   std::cout << cmd.t("help_talk") << std::endl;
   std::cout << cmd.t("help_duel") << std::endl;
+  std::cout << cmd.t("help_pause") << std::endl;
+  std::cout << cmd.t("help_resume") << std::endl;
   std::cout << cmd.t("help_help") << std::endl;
   std::cout << cmd.t("help_quit") << std::endl;
+}
+
+void Game::playMusic() {
+#ifdef _WIN32
+    std::string musicFile = world.here().music;
+    if (musicFile.empty()) musicFile = "default";
+    if (currentMusic == musicFile) return;
+
+    if (!currentMusic.empty()) {
+        mciSendStringA(("close " + currentMusic).c_str(), NULL, 0, 0);
+    }
+
+    mciSendStringA(("open \"music/" + musicFile + ".mp3\" alias " + musicFile).c_str(), NULL, 0, 0);
+    mciSendStringA(("play " + musicFile + " repeat").c_str(), NULL, 0, 0);
+    currentMusic = musicFile;
+#endif
 }
 
 void Game::run() {
@@ -125,7 +154,14 @@ void Game::run() {
       checkEndings();
       continue;
     }
-
+    if (cmd.is(input, "cmd_pause")) {
+        pauseMusic();
+        continue;
+    }
+    if (cmd.is(input, "cmd_resume")) {
+        resumeMusic();
+        continue;
+    }
     std::string a = cmd.arg(input, "cmd_go");
     if (!a.empty()) {
       moveTo(a);
@@ -146,9 +182,34 @@ void Game::run() {
       dialogueMgr.talk(a, world.here().npcs, flags);
       continue;
     }
-
     std::cout << cmd.t("unknown") << std::endl;
   }
 }
+void Game::pauseMusic() {
+#ifdef _WIN32
+    if (currentMusic.empty()) {
+        std::cout << cmd.t("music_not_playing") << std::endl;
+        return;
+    }
+    std::string pauseCmd = "pause " + currentMusic;
+    mciSendStringA(pauseCmd.c_str(), NULL, 0, NULL);
+    std::cout << cmd.t("music_paused") << std::endl;
+#endif
+}
 
-void Game::shutdown() { std::cout << cmd.t("game_over") << std::endl; }
+void Game::resumeMusic() {
+#ifdef _WIN32
+    if (currentMusic.empty()) {
+        std::cout << cmd.t("music_not_playing") << std::endl;
+        return;
+    }
+    std::string resumeCmd = "resume " + currentMusic;
+    mciSendStringA(resumeCmd.c_str(), NULL, 0, NULL);
+    std::cout << cmd.t("music_resumed") << std::endl;
+#endif
+}
+
+void Game::shutdown() {
+    mciSendStringA("close all", NULL, 0, 0);
+    std::cout << cmd.t("game_over") << std::endl;
+}

@@ -4,12 +4,18 @@
 #include <map>
 #include <string>
 
+#include <windows.h>
+
 #include "commands.h"
 #include "dialogue.h"
 #include "duel.h"
 #include "inventory.h"
 #include "types.h"
 #include "world.h"
+#ifdef _WIN32
+#include <mmsystem.h>
+#pragma comment(lib, "winmm.lib")
+#endif
 
 class Game {
  public:
@@ -37,6 +43,12 @@ class Game {
   void moveTo(const std::string& target);
   void checkEndings();
   void showHelp();
+
+  void pauseMusic();
+  void resumeMusic();
+
+  void playMusic();
+  std::string currentMusic;
 };
 
 #endif

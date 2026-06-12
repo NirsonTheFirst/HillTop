@@ -99,6 +99,7 @@ std::map<std::string, Location> Loader::loadLocations(const std::string& path) {
     loc.aliases = getArray(obj, "aliases");
     loc.items = getArray(obj, "items");
     loc.npcs = getArray(obj, "npcs");
+    loc.music = getString(obj, "music");
     map[id] = loc;
   });
   return map;
