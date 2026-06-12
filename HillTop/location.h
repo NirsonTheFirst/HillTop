@@ -5,11 +5,13 @@
 #include <vector>
 
 struct Location {
-  std::string id;
-  std::string name;
-  std::string description;
-  std::vector<std::string> exits;
-  std::vector<std::string> aliases;
+	std::string id;
+	std::string name;
+	std::string description;
+	std::vector<std::string> exits;
+	std::vector<std::string> aliases;
+	std::vector<std::string> items;
+	std::vector<std::string> npcs;
 };
 
 #endif

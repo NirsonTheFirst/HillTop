@@ -7,22 +7,6 @@
     "items": [ "journal" ],
     "npcs": [ "bank_clerk" ]
   },
-  "streetup": {
-    "name": "Верхняя улица",
-    "description": "Пыльная дорога между зданиями.",
-    "exits": [ "streetdown", "bank", "stable", "caves" ],
-    "aliases": [ "верхняя улица", "улица" ],
-    "items": [],
-    "npcs": []
-  },
-  "streetdown": {
-    "name": "Нижняя улица",
-    "description": "Пыльная дорога между зданиями.",
-    "exits": [ "streetup", "saloon", "sheriff", "prairie" ],
-    "aliases": [ "нижняя улица", "улица" ],
-    "items": [],
-    "npcs": []
-  },
   "stable": {
     "name": "Конюшня",
     "description": "Конюшня с лошадьми. Ничего необычного.",
@@ -46,6 +30,22 @@
     "aliases": [ "шериф", "офис" ],
     "items": [ "revolver", "badge" ],
     "npcs": [ "sheriff" ]
+  },
+  "streetup": {
+    "name": "Верхняя улица",
+    "description": "Пыльная дорога между зданиями.",
+    "exits": [ "streetdown", "bank", "stable", "caves" ],
+    "aliases": [ "верхняя улица" ],
+    "items": [],
+    "npcs": []
+  },
+  "streetdown": {
+    "name": "Нижняя улица",
+    "description": "Пыльная дорога между зданиями.",
+    "exits": [ "streetup", "saloon", "sheriff", "prairie" ],
+    "aliases": [ "нижняя улица" ],
+    "items": [],
+    "npcs": []
   },
   "caves": {
     "name": "Пещеры",
