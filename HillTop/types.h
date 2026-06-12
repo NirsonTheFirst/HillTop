@@ -1,22 +1,18 @@
-#ifndef PLAYER_H
-#define PLAYER_H
+#ifndef TYPES_H
+#define TYPES_H
 
 #include <string>
 #include <vector>
 
 struct Item {
   std::string id, name, description, type;
-  int damage = 0;
-  int ammo = 0;
-  int value = 0;
+  int damage = 0, ammo = 0, value = 0;
   std::string flag;
   std::vector<std::string> aliases;
 };
 
 struct DialogueOption {
-  std::string text;
-  std::string next;
-  std::string flag;
+  std::string text, next, flag;
 };
 
 struct Dialogue {
@@ -29,13 +25,15 @@ struct NPC {
   std::vector<std::string> aliases;
 };
 
+struct Location {
+  std::string id, name, description;
+  std::vector<std::string> exits, aliases, items, npcs;
+};
+
 struct Player {
-	std::string name;
-
-	int hp = 100;
-	int karma = 0;
-
-	std::vector<Item> inventory;
+  std::string name;
+  int hp = 100, maxHp = 100;
+  std::vector<Item> inventory;
 };
 
 #endif

@@ -1,11 +1,10 @@
-﻿#include <windows.h>
+#include <windows.h>
 
 #include "game.h"
 
 int main() {
-  SetConsoleOutputCP(1251);
-  SetConsoleCP(1251);
-
+  SetConsoleOutputCP(65001);
+  SetConsoleCP(65001);
   Game game;
   game.init();
   game.run();

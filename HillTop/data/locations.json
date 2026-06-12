@@ -1,66 +1,66 @@
-{
+п»ї{
   "bank": {
-    "name": "Банк HillTop",
-    "description": "Небольшое кирпичное здание. За стойкой сидит клерк.",
+    "name": "Р‘Р°РЅРє HillTop",
+    "description": "РќРµР±РѕР»СЊС€РѕРµ РєРёСЂРїРёС‡РЅРѕРµ Р·РґР°РЅРёРµ. Р—Р° СЃС‚РѕР№РєРѕР№ СЃРёРґРёС‚ РєР»РµСЂРє.",
     "exits": [ "streetup" ],
-    "aliases": [ "банк" ],
+    "aliases": [ "Р±Р°РЅРє" ],
     "items": [ "journal" ],
     "npcs": [ "bank_clerk" ]
   },
-  "streetup": {
-    "name": "Верхняя улица",
-    "description": "Пыльная дорога между зданиями.",
-    "exits": [ "streetdown", "bank", "stable", "caves" ],
-    "aliases": [ "верхняя улица", "улица" ],
-    "items": [],
-    "npcs": []
-  },
-  "streetdown": {
-    "name": "Нижняя улица",
-    "description": "Пыльная дорога между зданиями.",
-    "exits": [ "streetup", "saloon", "sheriff", "prairie" ],
-    "aliases": [ "нижняя улица", "улица" ],
-    "items": [],
-    "npcs": []
-  },
   "stable": {
-    "name": "Конюшня",
-    "description": "Конюшня с лошадьми. Ничего необычного.",
+    "name": "РљРѕРЅСЋС€РЅСЏ",
+    "description": "РљРѕРЅСЋС€РЅСЏ СЃ Р»РѕС€Р°РґСЊРјРё. РќРёС‡РµРіРѕ РЅРµРѕР±С‹С‡РЅРѕРіРѕ",
     "exits": [ "streetup" ],
-    "aliases": [ "конюшня" ],
+    "aliases": [ "РєРѕРЅСЋС€РЅСЏ" ],
     "items": [ "horseshoe" ],
     "npcs": []
   },
   "saloon": {
-    "name": "Салон 'Золотая подкова'",
-    "description": "Шумное место с барной стойкой и пианино в углу.",
+    "name": "РЎР°Р»РѕРЅ 'Р—РѕР»РѕС‚Р°СЏ РїРѕРґРєРѕРІР°'",
+    "description": "РЁСѓРјРЅРѕРµ РјРµСЃС‚Рѕ СЃ Р±Р°СЂРЅРѕР№ СЃС‚РѕР№РєРѕР№ Рё РїРёР°РЅРёРЅРѕ РІ СѓРіР»Сѓ.",
     "exits": [ "streetdown" ],
-    "aliases": [ "салун", "салон" ],
+    "aliases": [ "СЃР°Р»СѓРЅ", "СЃР°Р»РѕРЅ" ],
     "items": [ "whiskey" ],
     "npcs": [ "bartender", "drunken_cowboy" ]
   },
   "sheriff": {
-    "name": "Офис шерифа",
-    "description": "Кабинет с решётками. На стене висит карта.",
+    "name": "РћС„РёСЃ С€РµСЂРёС„Р°",
+    "description": "РљР°Р±РёРЅРµС‚ СЃ СЂРµС€С‘С‚РєР°РјРё. РќР° СЃС‚РµРЅРµ РІРёСЃРёС‚ РєР°СЂС‚Р°.",
     "exits": [ "streetdown" ],
-    "aliases": [ "шериф", "офис" ],
+    "aliases": [ "С€РµСЂРёС„", "РѕС„РёСЃ" ],
     "items": [ "revolver", "badge" ],
     "npcs": [ "sheriff" ]
   },
+  "streetup": {
+    "name": "Р’РµСЂС…РЅСЏСЏ СѓР»РёС†Р°",
+    "description": "РџС‹Р»СЊРЅР°СЏ РґРѕСЂРѕРіР° РјРµР¶РґСѓ Р·РґР°РЅРёСЏРјРё.",
+    "exits": [ "streetdown", "bank", "stable", "caves" ],
+    "aliases": [ "РІРµСЂС…РЅСЏСЏ СѓР»РёС†Р°" ],
+    "items": [],
+    "npcs": [ "outlaw_leader" ]
+  },
+  "streetdown": {
+    "name": "РќРёР¶РЅСЏСЏ СѓР»РёС†Р°",
+    "description": "РџС‹Р»СЊРЅР°СЏ РґРѕСЂРѕРіР° РјРµР¶РґСѓ Р·РґР°РЅРёСЏРјРё.",
+    "exits": [ "streetup", "saloon", "sheriff", "prairie" ],
+    "aliases": [ "РЅРёР¶РЅСЏСЏ СѓР»РёС†Р°" ],
+    "items": [],
+    "npcs": []
+  },
   "caves": {
-    "name": "Пещеры",
-    "description": "Жуткие пещеры, из которых доносятся страшные звуки.",
+    "name": "РџРµС‰РµСЂС‹",
+    "description": "Р–СѓС‚РєРёРµ РїРµС‰РµСЂС‹ РёР· РєРѕС‚РѕСЂС‹С… РґРѕРЅРѕСЃСЏС‚СЃСЏ СЃС‚СЂР°С€РЅС‹Рµ Р·РІСѓРєРё.",
     "exits": [ "streetup" ],
-    "aliases": [ "пещеры" ],
-    "items": [ "whistle" ],
+    "aliases": [ "РїРµС‰РµСЂС‹" ],
+    "items": [ "whistle", "letter" ],
     "npcs": [ "cannibal" ]
   },
   "prairie": {
-    "name": "Прерии",
-    "description": "Живописные поля дикого запада.",
+    "name": "РџСЂРµСЂРёРё",
+    "description": "Р–РёРІРѕРїРёСЃРЅС‹Рµ РїРѕР»СЏ РґРёРєРѕРіРѕ Р·Р°РїР°РґР°.",
     "exits": [ "streetdown" ],
-    "aliases": [ "прерия" ],
+    "aliases": [ "РїСЂРµСЂРёСЏ" ],
     "items": [ "gold" ],
-    "npcs": [ "outlaw_leader", "bandit" ]
+    "npcs": [ "bandit" ]
   }
 }

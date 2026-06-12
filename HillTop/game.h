@@ -5,7 +5,10 @@
 #include <string>
 
 #include "commands.h"
-#include "player.h"
+#include "dialogue.h"
+#include "duel.h"
+#include "inventory.h"
+#include "types.h"
 #include "world.h"
 
 class Game {
@@ -16,30 +19,24 @@ class Game {
   void shutdown();
 
  private:
-  bool is_running;
+  bool is_running = false;
   Player player;
   World world;
   Commands cmd;
   std::map<std::string, Item> items;
   std::map<std::string, NPC> npcs;
   std::map<std::string, Dialogue> dialogues;
+  std::map<std::string, std::string> endings;
   std::map<std::string, bool> flags;
+
+  Inventory inventory{items, player, cmd};
+  DialogueManager dialogueMgr{npcs, dialogues, cmd};
+  Duel duel{player, npcs, cmd};
 
   void showLocation();
   void moveTo(const std::string& target);
-  void takeItem(const std::string& name);
-  void showInventory();
-  void useItem(const std::string& name);
-  void talkTo(const std::string& name);
-  void runDialogue(const std::string& dialogueId);
-  void duel();
-  void showHelp();
   void checkEndings();
-  void killPlayer();
-
-  Item* findItem(const std::string& name);
-  NPC* findNPC(const std::string& name);
-  std::string resolve(const std::string& input);
+  void showHelp();
 };
 
 #endif

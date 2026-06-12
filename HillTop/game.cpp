@@ -1,11 +1,10 @@
-﻿#include "game.h"
+#include "game.h"
 
-#include <algorithm>
-#include <chrono>
 #include <iostream>
-#include <thread>
 
-Game::Game() : is_running(false) {}
+#include "loader.h"
+
+Game::Game() {}
 
 void Game::init() {
   cmd.load("data/text.json");
@@ -13,7 +12,7 @@ void Game::init() {
   items = Loader::loadItems("data/items.json");
   npcs = Loader::loadNPCs("data/npcs.json");
   dialogues = Loader::loadDialogues("data/dialogues.json");
-  player = Loader::loadPlayer("data/player.json");
+  endings = Loader::loadStrings("data/endings.json");
 
   std::cout << "=== HILLTOP ===" << std::endl;
   std::cout << cmd.t("welcome") << std::endl << std::endl;
@@ -22,16 +21,15 @@ void Game::init() {
 }
 
 void Game::showLocation() {
-  Location& loc = world.here();
+  const Location& loc = world.here();
   std::cout << "--- " << loc.name << " ---" << std::endl;
   std::cout << loc.description << std::endl;
 
   if (!loc.npcs.empty()) {
     std::cout << cmd.t("npcs_here") << " ";
     for (size_t i = 0; i < loc.npcs.size(); i++) {
-      std::string name = loc.npcs[i];
-      if (npcs.count(name)) name = npcs[name].name;
-      std::cout << name;
+      auto it = npcs.find(loc.npcs[i]);
+      std::cout << (it != npcs.end() ? it->second.name : loc.npcs[i]);
       if (i < loc.npcs.size() - 1) std::cout << ", ";
     }
     std::cout << std::endl;
@@ -40,9 +38,8 @@ void Game::showLocation() {
   if (!loc.items.empty()) {
     std::cout << cmd.t("items_here") << " ";
     for (size_t i = 0; i < loc.items.size(); i++) {
-      std::string name = loc.items[i];
-      if (items.count(name)) name = items[name].name;
-      std::cout << name;
+      auto it = items.find(loc.items[i]);
+      std::cout << (it != items.end() ? it->second.name : loc.items[i]);
       if (i < loc.items.size() - 1) std::cout << ", ";
     }
     std::cout << std::endl;
@@ -50,27 +47,15 @@ void Game::showLocation() {
 
   std::cout << cmd.t("exits") << " ";
   for (size_t i = 0; i < loc.exits.size(); i++) {
-    std::string name = loc.exits[i];
-    if (world.all().count(name)) name = world.all().at(name).name;
-    std::cout << name;
+    auto it = world.all().find(loc.exits[i]);
+    std::cout << (it != world.all().end() ? it->second.name : loc.exits[i]);
     if (i < loc.exits.size() - 1) std::cout << ", ";
   }
   std::cout << std::endl << std::endl;
 }
 
-std::string Game::resolve(const std::string& input) {
-  if (world.all().count(input)) return input;
-  for (std::map<std::string, Location>::const_iterator it = world.all().begin();
-       it != world.all().end(); ++it) {
-    if (it->second.name == input) return it->first;
-    for (size_t i = 0; i < it->second.aliases.size(); i++)
-      if (it->second.aliases[i] == input) return it->first;
-  }
-  return input;
-}
-
 void Game::moveTo(const std::string& target) {
-  std::string id = resolve(target);
+  std::string id = world.resolve(target);
   if (!world.canGo(id)) {
     std::cout << cmd.t("cant_go") << std::endl;
     return;
@@ -79,216 +64,21 @@ void Game::moveTo(const std::string& target) {
   showLocation();
 }
 
-Item* Game::findItem(const std::string& name) {
-  for (std::map<std::string, Item>::iterator it = items.begin();
-       it != items.end(); ++it) {
-    if (it->second.name == name) return &it->second;
-    for (size_t i = 0; i < it->second.aliases.size(); i++)
-      if (it->second.aliases[i] == name) return &it->second;
-  }
-  return NULL;
-}
-
-void Game::takeItem(const std::string& name) {
-  Location& loc = world.here();
-  for (size_t i = 0; i < loc.items.size(); i++) {
-    std::string id = loc.items[i];
-    if (!items.count(id)) continue;
-    Item& item = items[id];
-    if (item.name == name || std::find(item.aliases.begin(), item.aliases.end(),
-                                       name) != item.aliases.end()) {
-      player.inventory.push_back(item);
-      std::cout << cmd.t("taken") << item.name << std::endl;
-      loc.items.erase(loc.items.begin() + i);
-      return;
-    }
-  }
-  std::cout << cmd.t("not_found") << std::endl;
-}
-
-void Game::showInventory() {
-  if (player.inventory.empty()) {
-    std::cout << cmd.t("inventory_empty") << std::endl;
-    return;
-  }
-  std::cout << cmd.t("inventory") << std::endl;
-  for (size_t i = 0; i < player.inventory.size(); i++)
-    std::cout << "  " << (i + 1) << ". " << player.inventory[i].name << " ("
-              << player.inventory[i].description << ")" << std::endl;
-}
-
-void Game::useItem(const std::string& name) {
-  for (size_t i = 0; i < player.inventory.size(); i++) {
-    Item& item = player.inventory[i];
-    if (item.name == name || std::find(item.aliases.begin(), item.aliases.end(),
-                                       name) != item.aliases.end()) {
-      std::cout << cmd.t("used") << item.name << std::endl;
-      if (item.type == "consumable") {
-        player.hp += item.value;
-        if (player.hp > 100) player.hp = 100;
-        std::cout << "  +" << item.value << " HP (" << player.hp << "/100)"
-                  << std::endl;
-        player.inventory.erase(player.inventory.begin() + i);
-        return;
-      }
-      if (item.type == "story") {
-        flags[item.flag] = true;
-        std::cout << "  " << item.description << std::endl;
-        return;
-      }
-      if (item.type == "weapon") {
-        std::cout << "  Damage: " << item.damage << ", Ammo: " << item.ammo
-                  << std::endl;
-        return;
-      }
-    }
-  }
-  std::cout << cmd.t("cant_use") << std::endl;
-}
-
-NPC* Game::findNPC(const std::string& name) {
-  for (std::map<std::string, NPC>::iterator it = npcs.begin(); it != npcs.end();
-       ++it) {
-    if (it->second.name == name) return &it->second;
-    for (size_t i = 0; i < it->second.aliases.size(); i++)
-      if (it->second.aliases[i] == name) return &it->second;
-  }
-  return NULL;
-}
-
-void Game::talkTo(const std::string& name) {
-  Location& loc = world.here();
-  for (size_t i = 0; i < loc.npcs.size(); i++) {
-    std::string npcId = loc.npcs[i];
-    if (!npcs.count(npcId)) continue;
-    NPC& npc = npcs[npcId];
-    if (npc.name == name || std::find(npc.aliases.begin(), npc.aliases.end(),
-                                      name) != npc.aliases.end()) {
-      runDialogue(npc.dialogue);
-      return;
-    }
-  }
-  std::cout << cmd.t("npc_not_found") << std::endl;
-}
-
-void Game::runDialogue(const std::string& dialogueId) {
-  if (!dialogues.count(dialogueId)) return;
-  Dialogue& d = dialogues[dialogueId];
-
-  std::cout << std::endl << d.text << std::endl << std::endl;
-
-  if (d.options.empty()) return;
-
-  std::vector<int> valid;
-  for (size_t i = 0; i < d.options.size(); i++) {
-    std::string req = d.options[i].flag;
-    if (!req.empty() && !flags[req]) continue;
-    valid.push_back((int)i);
-    std::cout << "  " << valid.size() << ". " << d.options[i].text << std::endl;
-  }
-  std::cout << std::endl;
-
-  if (valid.empty()) return;
-
-  std::cout << "> ";
-  std::string input;
-  std::getline(std::cin, input);
-
-  if (input.empty()) return;
-
-  try {
-    int choice = std::stoi(input) - 1;
-    if (choice >= 0 && choice < (int)valid.size()) {
-      DialogueOption& opt = d.options[valid[choice]];
-      if (!opt.flag.empty()) flags[opt.flag] = true;
-      if (!opt.next.empty()) runDialogue(opt.next);
-    }
-  } catch (...) {
-    return;
-  }
-}
-
-void Game::duel() {
-  Location& loc = world.here();
-
-  bool hasEnemy = false;
-  for (size_t i = 0; i < loc.npcs.size(); i++) {
-    std::string npcId = loc.npcs[i];
-    if (npcs.count(npcId) && npcs[npcId].dialogue.empty()) {
-      hasEnemy = true;
-      break;
-    }
-  }
-
-  if (!hasEnemy) {
-    std::cout << cmd.t("duel_no_enemy") << std::endl;
-    return;
-  }
-
-  bool hasWeapon = false;
-  for (size_t i = 0; i < player.inventory.size(); i++) {
-    if (player.inventory[i].type == "weapon") {
-      hasWeapon = true;
-      break;
-    }
-  }
-
-  if (!hasWeapon) {
-    std::cout << cmd.t("duel_no_weapon") << std::endl;
-    return;
-  }
-
-  std::string targetWord = cmd.t("duel_word");
-
-  std::cout << cmd.t("duel_start") << std::endl;
-  std::this_thread::sleep_for(std::chrono::milliseconds(500));
-
-  for (int i = 3; i > 0; i--) {
-    std::cout << i << "..." << std::endl;
-    std::this_thread::sleep_for(std::chrono::milliseconds(500));
-  }
-
-  std::cout << cmd.t("duel_prompt") << "'" << targetWord << "'" << std::endl;
-  std::cout << "> ";
-
-  auto start = std::chrono::steady_clock::now();
-
-  std::string input;
-  std::getline(std::cin, input);
-
-  auto end = std::chrono::steady_clock::now();
-  auto elapsed =
-      std::chrono::duration_cast<std::chrono::milliseconds>(end - start)
-          .count();
-
-  if (input == targetWord && elapsed <= 3000) {
-    std::cout << cmd.t("duel_win") << std::endl;
-    flags["won_duel"] = true;
-    flags["outlaw_defeated"] = true;
-  } else if (input != targetWord) {
-    std::cout << cmd.t("duel_lose") << std::endl;
-    is_running = false;
-  } else {
-    std::cout << cmd.t("duel_slow") << std::endl;
-    std::cout << cmd.t("duel_lose") << std::endl;
-    is_running = false;
-  }
-}
-
-void Game::killPlayer() {
-  player.hp = 0;
-  std::cout << cmd.t("ending_dead") << std::endl;
-  is_running = false;
-}
-
 void Game::checkEndings() {
-  if (flags["won_duel"] || flags["outlaw_defeated"]) {
-    std::cout << cmd.t("ending_win") << std::endl;
-    is_running = false;
-  }
-
   if (player.hp <= 0) {
-    std::cout << cmd.t("ending_lose") << std::endl;
+    std::cout << std::endl << endings["ending_dead"] << std::endl;
+    is_running = false;
+    return;
+  }
+  if (flags["won_duel"] && flags["joined_sheriff"] &&
+      flags["heard_about_bandits"] && flags["know_about_mine"] &&
+      flags["has_horseshoe"] && flags["has_letter"]) {
+    std::cout << std::endl << endings["ending_good"] << std::endl;
+    is_running = false;
+    return;
+  }
+  if (flags["won_duel"] && flags["has_gold"]) {
+    std::cout << std::endl << endings["ending_bad"] << std::endl;
     is_running = false;
   }
 }
@@ -327,11 +117,11 @@ void Game::run() {
       continue;
     }
     if (cmd.is(input, "cmd_inv")) {
-      showInventory();
+      inventory.show();
       continue;
     }
     if (cmd.is(input, "cmd_duel")) {
-      duel();
+      duel.fight(world.here().npcs, flags, is_running);
       checkEndings();
       continue;
     }
@@ -343,17 +133,17 @@ void Game::run() {
     }
     a = cmd.arg(input, "cmd_take");
     if (!a.empty()) {
-      takeItem(a);
+      inventory.take(a, world.here().items);
       continue;
     }
     a = cmd.arg(input, "cmd_use");
     if (!a.empty()) {
-      useItem(a);
+      inventory.use(a, flags);
       continue;
     }
     a = cmd.arg(input, "cmd_talk");
     if (!a.empty()) {
-      talkTo(a);
+      dialogueMgr.talk(a, world.here().npcs, flags);
       continue;
     }
 

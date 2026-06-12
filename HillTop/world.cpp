@@ -1,12 +1,16 @@
 #include "world.h"
 
+#include "loader.h"
+
 void World::load(const std::string& path) {
   locations = Loader::loadLocations(path);
 }
 
-std::string World::current() const { return current_id; }
+const std::string& World::current() const { return current_id; }
 
 Location& World::here() { return locations[current_id]; }
+
+const Location& World::here() const { return locations.at(current_id); }
 
 Location& World::get(const std::string& id) { return locations[id]; }
 
@@ -20,3 +24,13 @@ bool World::canGo(const std::string& id) const {
 }
 
 void World::goTo(const std::string& id) { current_id = id; }
+
+std::string World::resolve(const std::string& input) const {
+  if (locations.count(input)) return input;
+  for (const auto& pair : locations) {
+    if (pair.second.name == input) return pair.first;
+    for (const auto& alias : pair.second.aliases)
+      if (alias == input) return pair.first;
+  }
+  return input;
+}
