@@ -3,8 +3,9 @@
 #include "game.h"
 
 int main() {
-  SetConsoleOutputCP(65001);
-  SetConsoleCP(65001);
+  SetConsoleOutputCP(1251);
+  SetConsoleCP(1251);
+
   Game game;
   game.init();
   game.run();

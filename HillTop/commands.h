@@ -13,8 +13,8 @@ class Commands {
   std::string t(const std::string& key) const;
 
  private:
-  std::map<std::string, std::string> cmdMap;
-  std::map<std::string, std::string> textsCache;
+  std::map<std::string, std::string> cmdMap;         // только команды
+  std::map<std::string, std::string> allTextsCache;  // все тексты
 };
 
 #endif
