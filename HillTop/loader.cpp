@@ -215,3 +215,52 @@ std::map<std::string, std::string> Loader::loadStrings(
   });
   return map;
 }
+
+std::string Loader::extractObject(const std::string& text, size_t pos) {
+    size_t objStart = text.find('{', pos);
+    if (objStart == std::string::npos) return "";
+
+    int depth = 0;
+    size_t objEnd = objStart;
+    for (size_t i = objStart; i < text.size(); i++) {
+        if (text[i] == '{') depth++;
+        if (text[i] == '}') {
+            depth--;
+            if (depth == 0) {
+                objEnd = i;
+                break;
+            }
+        }
+    }
+    return text.substr(objStart, objEnd - objStart + 1);
+}
+
+Player Loader::loadPlayer(const std::string& path) {
+    Player player;
+    std::string text = readFile(path);
+    if (text.empty()) {
+        std::cerr << "ERROR: Cannot open player.json!" << std::endl;
+        return player;
+    }
+
+    player.name = getString(text, "name");
+    player.hp = getInt(text, "hp");
+    player.maxHp = getInt(text, "maxHp");
+    if (player.maxHp <= 0) player.maxHp = 100;
+    if (player.hp <= 0) player.hp = player.maxHp;
+
+    size_t duelPos = text.find("\"duel\"");
+    if (duelPos != std::string::npos) {
+        std::string duelObj = extractObject(text, duelPos);
+        player.duelTimeLimitFast = getInt(duelObj, "time_limit_fast");
+        player.duelTimeLimitSlow = getInt(duelObj, "time_limit_slow");
+        player.duelDamageNoWeapon = getInt(duelObj, "damage_no_weapon");
+        player.duelDamageSlow = getInt(duelObj, "damage_slow");
+        player.duelDamageVerySlow = getInt(duelObj, "damage_very_slow");
+        player.duelDamageMisspellFast = getInt(duelObj, "damage_misspell_fast");
+        player.duelDamageMisspellSlow = getInt(duelObj, "damage_misspell_slow");
+        player.duelDamageMisspellVerySlow = getInt(duelObj, "damage_misspell_very_slow");
+    }
+
+    return player;
+}

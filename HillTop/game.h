@@ -1,10 +1,12 @@
 #ifndef GAME_H
 #define GAME_H
 
-#include <map>
-#include <string>
 
 #include <windows.h>
+#include <mmsystem.h>
+
+#include <map>
+#include <string>
 
 #include "commands.h"
 #include "dialogue.h"
@@ -13,7 +15,6 @@
 #include "types.h"
 #include "world.h"
 #ifdef _WIN32
-#include <mmsystem.h>
 #pragma comment(lib, "winmm.lib")
 #endif
 
@@ -49,6 +50,7 @@ class Game {
 
   void playMusic();
   std::string currentMusic;
+  bool musicPaused = false;
 };
 
 #endif

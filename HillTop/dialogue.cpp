@@ -37,10 +37,9 @@ void DialogueManager::runDialogue(const std::string& dialogueId,
 
   std::vector<int> valid;
   for (size_t i = 0; i < d.options.size(); i++) {
-    const std::string& req = d.options[i].flag;
-    if (!req.empty() && !flags[req]) continue;
-    valid.push_back((int)i);
-    std::cout << "  " << valid.size() << ". " << d.options[i].text << std::endl;
+      valid.push_back((int)i);
+      std::cout << "  " << valid.size() << ". "
+          << d.options[i].text << std::endl;
   }
   std::cout << std::endl;
   if (valid.empty()) return;

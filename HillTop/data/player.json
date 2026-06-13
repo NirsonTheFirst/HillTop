@@ -1,6 +1,16 @@
 {
   "name": "Player",
   "hp": 100,
-  "karma": 0,
-  "inventory": []
+  "maxHp": 100,
+  "inventory": [],
+  "duel": {
+    "time_limit_fast": 3000,
+    "time_limit_slow": 6000,
+    "damage_no_weapon": 90,
+    "damage_slow": 60,
+    "damage_very_slow": 100,
+    "damage_misspell_fast": 50,
+    "damage_misspell_slow": 60,
+    "damage_misspell_very_slow": 100
+  }
 }

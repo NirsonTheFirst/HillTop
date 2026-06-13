@@ -1,18 +1,15 @@
 #include "duel.h"
-
-#include <algorithm>
-#include <chrono>
-#include <iostream>
-#include <thread>
-
 #include "commands.h"
+#include <iostream>
+#include <chrono>
+#include <thread>
+#include <algorithm>
 
 Duel::Duel(Player& p, std::map<std::string, NPC>& n, const Commands& c)
     : player(p), npcs(n), cmd(c) {
 }
 
-bool Duel::fight(std::vector<std::string>& locNPCs,
-    std::map<std::string, bool>& flags, bool& isRunning) {
+bool Duel::fight(std::vector<std::string>& locNPCs, std::map<std::string, bool>& flags, bool& isRunning) {
     std::string enemyId;
     for (auto& npcId : locNPCs) {
         auto it = npcs.find(npcId);
@@ -29,21 +26,12 @@ bool Duel::fight(std::vector<std::string>& locNPCs,
 
     bool hasWeapon = false;
     for (const auto& item : player.inventory)
-        if (item.type == "weapon") {
-            hasWeapon = true;
-            break;
-        }
+        if (item.type == "weapon") { hasWeapon = true; break; }
 
     if (!hasWeapon) {
         std::cout << cmd.t("duel_no_weapon") << std::endl;
-        std::cout << cmd.t("duel_hurt") << std::endl;
-        player.hp -= 40;
-        if (player.hp <= 0) {
-            player.hp = 0;
-            isRunning = false;
-        }
-        locNPCs.erase(std::remove(locNPCs.begin(), locNPCs.end(), enemyId),
-            locNPCs.end());
+        player.hp -= player.duelDamageNoWeapon;
+        std::cout << "[" << player.hp << "/" << player.maxHp << " HP]" << std::endl;
         return false;
     }
 
@@ -61,26 +49,28 @@ bool Duel::fight(std::vector<std::string>& locNPCs,
     std::cout << "> ";
 
     auto start = std::chrono::steady_clock::now();
-
     std::string input;
     std::getline(std::cin, input);
+    auto elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - start).count();
 
-    auto end = std::chrono::steady_clock::now();
-    auto elapsed =
-        std::chrono::duration_cast<std::chrono::milliseconds>(end - start)
-        .count();
-
-    if (input == targetWord && elapsed <= 3000) {
+    if (input == targetWord && elapsed <= player.duelTimeLimitFast) {
         std::cout << cmd.t("duel_win") << std::endl;
-        flags["won_duel"] = true;
-        locNPCs.erase(std::remove(locNPCs.begin(), locNPCs.end(), enemyId),
-            locNPCs.end());
+        if (enemyId == "outlaw_leader") flags["leader_defeated"] = true;
+        locNPCs.erase(std::remove(locNPCs.begin(), locNPCs.end(), enemyId), locNPCs.end());
         return true;
     }
 
-    std::cout << (input != targetWord ? cmd.t("duel_lose") : cmd.t("duel_slow"))
-        << std::endl;
-    player.hp = 0;
-    isRunning = false;
+    int damage = (input != targetWord)
+        ? (elapsed > player.duelTimeLimitSlow ? player.duelDamageMisspellVerySlow :
+            elapsed > player.duelTimeLimitFast ? player.duelDamageMisspellSlow : player.duelDamageMisspellFast)
+        : (elapsed > player.duelTimeLimitSlow ? player.duelDamageVerySlow : player.duelDamageSlow);
+
+    std::cout << cmd.t("duel_lose") << std::endl;
+    std::cout << cmd.t("duel_damage") << damage << " HP" << std::endl;
+
+    player.hp -= damage;
+    if (player.hp <= 0) isRunning = false;
+    std::cout << "[" << player.hp << "/" << player.maxHp << " HP]" << std::endl;
+
     return false;
 }

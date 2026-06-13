@@ -32,9 +32,19 @@ struct Location {
 };
 
 struct Player {
-  std::string name;
-  int hp = 100, maxHp = 100;
-  std::vector<Item> inventory;
+	std::string name;
+	int hp = 100;
+	int maxHp = 100;
+	std::vector<Item> inventory;
+
+	int duelTimeLimitFast;
+	int duelTimeLimitSlow;
+	int duelDamageNoWeapon;
+	int duelDamageSlow;
+	int duelDamageVerySlow;
+	int duelDamageMisspellFast;
+	int duelDamageMisspellSlow;
+	int duelDamageMisspellVerySlow;
 };
 
 #endif

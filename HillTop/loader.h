@@ -10,6 +10,8 @@
 
 class Loader {
  public:
+  static Player loadPlayer(const std::string& path);
+  static std::string extractObject(const std::string& text, size_t pos);
   static std::map<std::string, Location> loadLocations(const std::string& path);
   static std::map<std::string, Item> loadItems(const std::string& path);
   static std::map<std::string, NPC> loadNPCs(const std::string& path);

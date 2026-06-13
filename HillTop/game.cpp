@@ -13,6 +13,7 @@ void Game::init() {
   npcs = Loader::loadNPCs("data/npcs.json");
   dialogues = Loader::loadDialogues("data/dialogues.json");
   endings = Loader::loadStrings("data/endings.json");
+  player = Loader::loadPlayer("data/player.json");
 
   std::cout << "=== HILLTOP ===" << std::endl;
   std::cout << cmd.t("welcome") << std::endl << std::endl;
@@ -76,22 +77,23 @@ void Game::moveTo(const std::string& target) {
 }
 
 void Game::checkEndings() {
-  if (player.hp <= 0) {
-    std::cout << std::endl << endings["ending_dead"] << std::endl;
-    is_running = false;
-    return;
-  }
-  if (flags["won_duel"] && flags["joined_sheriff"] &&
-      flags["heard_about_bandits"] && flags["know_about_mine"] &&
-      flags["has_horseshoe"] && flags["has_letter"]) {
-    std::cout << std::endl << endings["ending_good"] << std::endl;
-    is_running = false;
-    return;
-  }
-  if (flags["won_duel"] && flags["has_gold"]) {
-    std::cout << std::endl << endings["ending_bad"] << std::endl;
-    is_running = false;
-  }
+    if (player.hp <= 0) {
+        std::cout << std::endl << endings["ending_dead"] << std::endl;
+        is_running = false;
+        return;
+    }
+    if (flags["leader_defeated"] && flags["joined_sheriff"] &&
+        flags["heard_about_bandits"] && flags["know_about_mine"] &&
+        flags["has_horseshoe"] && flags["has_letter"]) {
+        std::cout << std::endl << endings["ending_good"] << std::endl;
+        is_running = false;
+        return;
+    }
+    if (flags["leader_defeated"] && flags["has_gold"]) {
+        std::cout << std::endl << endings["ending_bad"] << std::endl;
+        is_running = false;
+        return;
+    }
 }
 
 void Game::showHelp() {
@@ -113,12 +115,21 @@ void Game::playMusic() {
 #ifdef _WIN32
     std::string musicFile = world.here().music;
     if (musicFile.empty()) musicFile = "default";
+    if (musicPaused) {
+        if (currentMusic == musicFile) return;
+        if (!currentMusic.empty()) {
+            mciSendStringA(("close " + currentMusic).c_str(), NULL, 0, 0);
+        }
+        mciSendStringA(("open \"music/" + musicFile + ".mp3\" alias " + musicFile).c_str(), NULL, 0, 0);
+        currentMusic = musicFile;
+        return;
+    }
+
     if (currentMusic == musicFile) return;
 
     if (!currentMusic.empty()) {
         mciSendStringA(("close " + currentMusic).c_str(), NULL, 0, 0);
     }
-
     mciSendStringA(("open \"music/" + musicFile + ".mp3\" alias " + musicFile).c_str(), NULL, 0, 0);
     mciSendStringA(("play " + musicFile + " repeat").c_str(), NULL, 0, 0);
     currentMusic = musicFile;
@@ -170,16 +181,19 @@ void Game::run() {
     a = cmd.arg(input, "cmd_take");
     if (!a.empty()) {
       inventory.take(a, world.here().items);
+      checkEndings();
       continue;
     }
     a = cmd.arg(input, "cmd_use");
     if (!a.empty()) {
       inventory.use(a, flags);
+      checkEndings();
       continue;
     }
     a = cmd.arg(input, "cmd_talk");
     if (!a.empty()) {
       dialogueMgr.talk(a, world.here().npcs, flags);
+      checkEndings();
       continue;
     }
     std::cout << cmd.t("unknown") << std::endl;
@@ -191,8 +205,10 @@ void Game::pauseMusic() {
         std::cout << cmd.t("music_not_playing") << std::endl;
         return;
     }
-    std::string pauseCmd = "pause " + currentMusic;
-    mciSendStringA(pauseCmd.c_str(), NULL, 0, NULL);
+    if (musicPaused) return;
+
+    mciSendStringA(("pause " + currentMusic).c_str(), NULL, 0, NULL);
+    musicPaused = true;
     std::cout << cmd.t("music_paused") << std::endl;
 #endif
 }
@@ -203,13 +219,16 @@ void Game::resumeMusic() {
         std::cout << cmd.t("music_not_playing") << std::endl;
         return;
     }
-    std::string resumeCmd = "resume " + currentMusic;
-    mciSendStringA(resumeCmd.c_str(), NULL, 0, NULL);
+    if (!musicPaused) return;
+
+    mciSendStringA(("resume " + currentMusic).c_str(), NULL, 0, NULL);
+    musicPaused = false;
     std::cout << cmd.t("music_resumed") << std::endl;
 #endif
 }
 
 void Game::shutdown() {
     mciSendStringA("close all", NULL, 0, 0);
+    musicPaused = false;
     std::cout << cmd.t("game_over") << std::endl;
 }

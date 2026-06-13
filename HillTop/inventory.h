@@ -22,8 +22,6 @@ class Inventory {
   std::map<std::string, Item>& items;
   Player& player;
   const Commands& cmd;
-
-  Item* find(const std::string& name);
 };
 
 #endif

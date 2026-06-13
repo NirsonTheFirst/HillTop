@@ -9,15 +9,6 @@ Inventory::Inventory(std::map<std::string, Item>& i, Player& p,
                      const Commands& c)
     : items(i), player(p), cmd(c) {}
 
-Item* Inventory::find(const std::string& name) {
-  for (auto& pair : items) {
-    if (pair.second.name == name) return &pair.second;
-    for (const auto& alias : pair.second.aliases)
-      if (alias == name) return &pair.second;
-  }
-  return nullptr;
-}
-
 void Inventory::take(const std::string& name,
                      std::vector<std::string>& locItems) {
   for (size_t i = 0; i < locItems.size(); i++) {
@@ -55,11 +46,13 @@ void Inventory::use(const std::string& name,
       std::cout << cmd.t("used") << item.name << std::endl;
       if (item.type == "consumable") {
         player.hp = std::min(player.hp + item.value, player.maxHp);
+        std::cout << "  +" << item.value << " HP (" << player.hp << "/" << player.maxHp << ")" << std::endl;
         player.inventory.erase(player.inventory.begin() + i);
         return;
       }
       if (item.type == "story") {
         flags[item.flag] = true;
+        std::cout << "  " << item.description << std::endl;
         return;
       }
       if (item.type == "weapon") {
