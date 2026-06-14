@@ -231,4 +231,6 @@ void Game::shutdown() {
     mciSendStringA("close all", NULL, 0, 0);
     musicPaused = false;
     std::cout << cmd.t("game_over") << std::endl;
+    std::cin.clear();
+    std::cin.get();
 }
